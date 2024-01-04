@@ -11,19 +11,21 @@ class MainWindow(QWidget):
         super().__init__()
 
         self.setWindowTitle("Diceware")
-        self.setFixedSize(275, 425)
+        self.setFixedSize(275, 415)
 
         container = QWidget(self)
         container.setStyleSheet("background-color: rgb(252, 247, 232)")
 
         main_layout = QVBoxLayout(container)
+        main_layout.setSpacing(5)
+        #main_layout.setContentsMargins(5,0,0,5)
 
         label1 = QLabel("Générateur de « Pass Phrases »")
         label1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = QFont("Utopia", 12)
-        label1.setStyleSheet("background-color: rgb(119,137,189); color:white; border: 2px solid rgb(49,68,125); border-radius: 5px; margin-bottom: 10px")
+        label1.setStyleSheet("background-color: rgb(119,137,189); color:white; border: 3px solid rgb(49,68,125); border-radius: 5px; margin-bottom: 5px")
         label1.setFont(font)
-        label2 = QLabel("Choisir le nombre de mots (entre 4 et 10)\n   4 : faible, à éviter\n   5 à 8 : selon le degré de sécurité souhaité\n   9 et plus : paranoïaque (en 2024 !)")
+        label2 = QLabel("Choisir le nombre de mots (entre 4 et 10)\n   4 : sécurité faible, à éviter\n   5 à 8 : selon le degré de sécurité souhaité\n   9 et plus : niveau paranoïaque (en 2024 !)")
         label2.setStyleSheet("background-color: rgb(232,238,252); color: black; border-width: 1px; border-style: outset; border-radius: 2px")
 
         generate = QPushButton("Générer la « Pass Phrase »")
@@ -33,13 +35,12 @@ class MainWindow(QWidget):
         self.nb_mots.setRange(4,10)
         self.nb_mots.setValue(5)
         self.nb_mots.setStyleSheet("background-color: rgb(232,238,252)")
-
  
-        self.first_pass = ["sperme", "exil", "éveil", "ulcère", "tract", "rock", "partie", "étang"]
+        #self.first_pass = ["sperme", "exil", "éveil", "ulcère", "tract", "rock", "partie", "étang"]
         self.rep = QListWidget()
         self.rep.setStyleSheet("background-color: rgb(232,238,252)")
-        for i in range(0, len(self.first_pass)):
-            self.rep.addItem(self.first_pass[i])
+        #for i in range(0, len(self.first_pass)):
+        #    self.rep.addItem(self.first_pass[i])
 
         main_layout.addWidget(label1)
         main_layout.addWidget(label2)
@@ -91,3 +92,8 @@ if __name__ == '__main__':
     main_windows.show()
 
     sys.exit(app.exec())
+
+# à faire : layout.setSpacing()
+# à faire : layout.setContentsMargins()
+# à faire : setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
+# à faire : 
