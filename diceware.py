@@ -1,6 +1,6 @@
 import sys
 
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QSpinBox, QListWidget, QHBoxLayout, QFileDialog
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QSpinBox, QListWidget, QHBoxLayout, QFileDialog, QComboBox, QCommandLinkButton
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
@@ -10,7 +10,11 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.sep = " "
+        self.svg = False
+
         self.setWindowTitle("Diceware")
+        #self.setFixedSize(275, 515)
         self.setFixedSize(275, 415)
 
         container = QWidget(self)
@@ -18,7 +22,6 @@ class MainWindow(QWidget):
 
         main_layout = QVBoxLayout(container)
         main_layout.setSpacing(5)
-        #main_layout.setContentsMargins(5,0,0,5)
 
         label1 = QLabel("Générateur de « Pass Phrases »")
         label1.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -33,14 +36,14 @@ class MainWindow(QWidget):
         generate.setStyleSheet("background-color: rgb(166,155,128)")
         self.nb_mots = QSpinBox()
         self.nb_mots.setRange(4,10)
-        self.nb_mots.setValue(5)
+        self.nb_mots.setValue(8)
         self.nb_mots.setStyleSheet("background-color: rgb(232,238,252)")
  
-        #self.first_pass = ["sperme", "exil", "éveil", "ulcère", "tract", "rock", "partie", "étang"]
+        self.first_pass = ["sperme", "exil", "éveil", "ulcère", "tract", "rock", "partie", "étang"]
         self.rep = QListWidget()
         self.rep.setStyleSheet("background-color: rgb(232,238,252)")
-        #for i in range(0, len(self.first_pass)):
-        #    self.rep.addItem(self.first_pass[i])
+        for i in range(0, len(self.first_pass)):
+            self.rep.addItem(self.first_pass[i])
 
         main_layout.addWidget(label1)
         main_layout.addWidget(label2)
@@ -49,17 +52,37 @@ class MainWindow(QWidget):
         main_layout.addWidget(self.rep)
 
         quit_save = QHBoxLayout()
+        bsvg = QHBoxLayout()
+        bsvg.setSpacing(0)
+        quit_save.addLayout(bsvg)
         main_layout.addLayout(quit_save)
 
         quitter = QPushButton("Quitter")
         quitter.setStyleSheet("background-color: rgb(166,155,128)")
+        quitter.setFixedSize(100,25)
         quitter.clicked.connect(quit)
         sauvegarder = QPushButton( "Sauvegarder" )
+        sauvegarder.setFixedSize(80,25)
         sauvegarder.setStyleSheet("background-color: rgb(166,155,128)")
         sauvegarder.clicked.connect(self.sauvegarder)
 
-        quit_save.addWidget(sauvegarder)
+        bsvg.addWidget(sauvegarder)
+        cb = QComboBox()
+        cb.setFixedSize(20,25)
+        cb.setStyleSheet("background-color: rgb(166,155,128)")
+        sep_noms = ("Rien", "Tiret haut", "Tiret bas", "Plus", "Espace")
+        for i in range(5):
+            cb.insertItem(i, sep_noms[i] )
+
+        cb.activated.connect(self.quel_sep)
+
+        bsvg.addWidget(cb)
+
         quit_save.addWidget(quitter)
+
+    def quel_sep(self, index):
+        sep = ("", "-", "_", "+", " ")
+        self.sep = sep[index]
 
     def sauvegarder(self):
         dialogue = QFileDialog(self)
@@ -68,14 +91,19 @@ class MainWindow(QWidget):
         
         if dialogue.exec():
              file = dialogue.selectedFiles()
+             der = self.rep.count()
              with open(file[0], 'w') as file:
-                for i in range (0, self.rep.count()):
+                for i in range (0, der):
                     file.write( self.rep.item(i).text())
-                    file.write(' ')
+                    if i != der-1:
+                        file.write(self.sep)
                 file.write('\n')
+
+        self.svg = True
 
     def generate_clicked(self):
         self.rep.clear()
+        self.svg = False
         with open("diceware.txt", "r") as file:
             for j in range(0, self.nb_mots.value()):
                 rand = secrets.randbelow(2724)
@@ -94,6 +122,6 @@ if __name__ == '__main__':
     sys.exit(app.exec())
 
 # à faire : layout.setSpacing()
-# à faire : layout.setContentsMargins()
+# main_layout.setContentsMargins(5,0,0,5)
 # à faire : setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
 # à faire : 
