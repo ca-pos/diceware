@@ -68,6 +68,7 @@ class MainWindow(QWidget):
 
         bsvg.addWidget(sauvegarder)
         cb = QComboBox()
+        cb.view().setMinimumWidth(70)
         cb.setFixedSize(20,25)
         cb.setStyleSheet("background-color: rgb(166,155,128)")
         sep_noms = ("Rien", "Tiret haut", "Tiret bas", "Plus", "Espace")
