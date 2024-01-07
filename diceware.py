@@ -1,11 +1,11 @@
 import sys
 
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QSpinBox, QListWidget, QHBoxLayout, QFileDialog, QComboBox, QCommandLinkButton
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QSpinBox, QListWidget, QHBoxLayout, QFileDialog, QComboBox, QDialog, QDialogButtonBox
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QCloseEvent, QFont
 
 import secrets
-
+#################################################################################
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -14,7 +14,6 @@ class MainWindow(QWidget):
         self.svg = False
 
         self.setWindowTitle("Diceware")
-        #self.setFixedSize(275, 515)
         self.setFixedSize(275, 415)
 
         container = QWidget(self)
@@ -23,7 +22,7 @@ class MainWindow(QWidget):
         main_layout = QVBoxLayout(container)
         main_layout.setSpacing(5)
 
-        label1 = QLabel("Générateur de « Pass Phrases »")
+        label1 = QLabel("Générateur de Phrases Secrètes")
         label1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = QFont("Utopia", 12)
         label1.setStyleSheet("background-color: rgb(119,137,189); color:white; border: 3px solid rgb(49,68,125); border-radius: 5px; margin-bottom: 5px")
@@ -31,7 +30,7 @@ class MainWindow(QWidget):
         label2 = QLabel("Choisir le nombre de mots (entre 4 et 10)\n   4 : sécurité faible, à éviter\n   5 à 8 : selon le degré de sécurité souhaité\n   9 et plus : niveau paranoïaque (en 2024 !)")
         label2.setStyleSheet("background-color: rgb(232,238,252); color: black; border-width: 1px; border-style: outset; border-radius: 2px")
 
-        generate = QPushButton("Générer la « Pass Phrase »")
+        generate = QPushButton("Générer une Phrase Secrète")
         generate.clicked.connect(self.generate_clicked)
         generate.setStyleSheet("background-color: rgb(166,155,128)")
         self.nb_mots = QSpinBox()
@@ -60,7 +59,7 @@ class MainWindow(QWidget):
         quitter = QPushButton("Quitter")
         quitter.setStyleSheet("background-color: rgb(166,155,128)")
         quitter.setFixedSize(100,25)
-        quitter.clicked.connect(quit)
+        quitter.clicked.connect(self.closeEvent)
         sauvegarder = QPushButton( "Sauvegarder" )
         sauvegarder.setFixedSize(80,25)
         sauvegarder.setStyleSheet("background-color: rgb(166,155,128)")
@@ -80,11 +79,22 @@ class MainWindow(QWidget):
         bsvg.addWidget(cb)
 
         quit_save.addWidget(quitter)
-
+#--------------------------------------------------------------------------------
+    def closeEvent(self, event) -> None:
+        if self.svg:
+            quit()
+        choix = CustomDialog()
+        choix.exec()
+        if choix.retStatus == "Q":
+            quit()
+        elif not isinstance(event, bool):
+            event.ignore()
+        #return super().closeEvent(event)
+#--------------------------------------------------------------------------------
     def quel_sep(self, index):
         sep = ("", "-", "_", "+", " ")
         self.sep = sep[index]
-
+#--------------------------------------------------------------------------------
     def sauvegarder(self):
         dialogue = QFileDialog(self)
         dialogue.setDirectory("/home/camille")
@@ -101,7 +111,7 @@ class MainWindow(QWidget):
                 file.write('\n')
 
         self.svg = True
-
+#--------------------------------------------------------------------------------
     def generate_clicked(self):
         self.rep.clear()
         self.svg = False
@@ -113,6 +123,40 @@ class MainWindow(QWidget):
                     file.readline()
                 self.rep.addItem(file.readline().strip())
 
+#################################################################################
+class CustomDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Avertissement")
+        self.retStatus = "X" # pour éviter une erreur si fermeture de la fenêtre
+
+        self.btn_quitter = QPushButton("Quitter")
+        self.btn_quitter.clicked.connect(self.sortir)
+        self.btn_annuler = QPushButton("Annuler")
+        self.btn_annuler.clicked.connect(self.annuler)
+
+        self.dlg = QDialogButtonBox()
+        self.dlg.addButton(self.btn_quitter,QDialogButtonBox.ButtonRole.AcceptRole)
+        self.dlg.addButton(self.btn_annuler,QDialogButtonBox.ButtonRole.RejectRole)
+
+        message = QLabel("La phrase secrète n'est pas sauvegardée\nQuitter quand même ?")
+
+        cd_layout = QVBoxLayout(self)
+        cd_layout.addWidget(message)
+        cd_layout.addWidget(self.dlg)
+        self.setLayout(cd_layout)
+#--------------------------------------------------------------------------------
+    def sortir(self):
+        self.retStatus = "Q"
+        self.close()
+#--------------------------------------------------------------------------------
+    def annuler(self):
+        self.retStatus = "A"
+        self.close()
+#################################################################################
+
+
 if __name__ == '__main__':
 
     app = QApplication(sys.argv)
@@ -123,6 +167,6 @@ if __name__ == '__main__':
     sys.exit(app.exec())
 
 # à faire : layout.setSpacing()
-# main_layout.setContentsMargins(5,0,0,5)
+# à faire : main_layout.setContentsMargins(5,0,0,5)
 # à faire : setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
-# à faire : 
+# <PySide6.QtCore.QEvent(QEvent::Close)>
