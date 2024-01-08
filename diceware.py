@@ -132,8 +132,10 @@ class CustomDialog(QDialog):
         self.retStatus = "X" # pour éviter une erreur si fermeture de la fenêtre
 
         self.btn_quitter = QPushButton("Quitter")
+        self.btn_quitter.setStyleSheet("background-color: rgb(166,155,128)")
         self.btn_quitter.clicked.connect(self.sortir)
         self.btn_annuler = QPushButton("Annuler")
+        self.btn_annuler.setStyleSheet("background-color: rgb(166,155,128)")
         self.btn_annuler.clicked.connect(self.annuler)
 
         self.dlg = QDialogButtonBox()
@@ -141,8 +143,12 @@ class CustomDialog(QDialog):
         self.dlg.addButton(self.btn_annuler,QDialogButtonBox.ButtonRole.RejectRole)
 
         message = QLabel("La phrase secrète n'est pas sauvegardée\nQuitter quand même ?")
+        message.setStyleSheet("color:rgb(220,220,220)")
 
-        cd_layout = QVBoxLayout(self)
+        container = QWidget(self)
+        cd_layout = QVBoxLayout(container)
+        container.setStyleSheet("background-color:rgb(140,70,35)")
+        container.setFixedSize(250,200)
         cd_layout.addWidget(message)
         cd_layout.addWidget(self.dlg)
         self.setLayout(cd_layout)
