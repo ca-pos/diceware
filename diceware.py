@@ -1,8 +1,8 @@
 import sys
 
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QSpinBox, QListWidget, QHBoxLayout, QFileDialog, QComboBox, QDialog, QDialogButtonBox
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QSpinBox, QListWidget, QHBoxLayout, QFileDialog, QComboBox, QDialog, QDialogButtonBox, QMenuBar
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QCloseEvent, QFont
+from PySide6.QtGui import QFont, QAction, QIcon
 
 import secrets
 #################################################################################

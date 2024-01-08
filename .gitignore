@@ -1,4 +1,5 @@
 diceware[1-4].txt
+icons/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
