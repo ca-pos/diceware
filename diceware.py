@@ -1,12 +1,14 @@
 import sys
 
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QSpinBox, QListWidget, QHBoxLayout, QFileDialog, QComboBox, QDialog, QDialogButtonBox, QMenuBar
+from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QSpinBox, QListWidget, QHBoxLayout, QFileDialog, QComboBox, QDialog, QDialogButtonBox, QMainWindow, QButtonGroup, QRadioButton#, QMenuBar
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QAction, QIcon
 
 import secrets
+
+from click import group
 #################################################################################
-class MainWindow(QWidget):
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
@@ -21,6 +23,57 @@ class MainWindow(QWidget):
 
         main_layout = QVBoxLayout(container)
         main_layout.setSpacing(5)
+
+        self.setCentralWidget(container)
+
+        statusBar = self.statusBar()
+        statusBar.showMessage(self.windowTitle())
+
+        ### Actions
+        # fichier: sauvegarder
+        self.actSauvegarder = QAction(QIcon("icons/save.png"), "Sau&vegarder", self)
+        self.actSauvegarder.setShortcut("Ctrl+S")
+        self.actSauvegarder.setStatusTip("Sauvegarder la phrase secrète")
+        self.actSauvegarder.triggered.connect(self.sauvegarder)
+        # fichier: sortir
+        self.actSortir = QAction(QIcon("icons/exit.png"), "&Sortir", self)
+        self.actSortir.setShortcut("Ctrl+Q")
+        self.actSortir.setStatusTip("Quitter")
+        self.actSortir.triggered.connect(self.closeEvent)
+        # créer: séparateur
+        self.actSep = QAction(QIcon(""), "&Choisir le séparateur", self)
+        self.actSep.setShortcut("Ctrl+P")
+        self.actSep.setStatusTip("Choisir le séparateur")
+        self.actSep.triggered.connect(self.choisir_separateur)
+        #créer: générer
+        self.actNouvellePhrase = QAction(QIcon(""), "&Générer une nouvelle phrase", self)
+        self.actNouvellePhrase.setShortcut("Ctrl+G")
+        self.actNouvellePhrase.setStatusTip("Générer une nouvelle phase secrète")
+        self.actNouvellePhrase.triggered.connect(self.generate_clicked)
+        # aide: à propos
+        self.actAPropos = QAction(QIcon("icons/about.png)"), "À pr&opos", self)
+        self.actAPropos.setShortcut("Crtl+A")
+        self.actAPropos.setStatusTip("À propos")
+        self.actAPropos.triggered.connect(self.apropos)
+        # aide: aide
+        self.actAide = QAction(QIcon("icons/help.png"), "&Aide", self)
+        self.actAide.setShortcut("F1")
+        self.actAide.setStatusTip("Instruction pour l'utilisation du générateur")
+        self.actAide.triggered.connect(self.aide)
+
+        ### Barre de menu
+        mb = self.menuBar()
+        fich = mb.addMenu("&Fichier")
+        creer = mb.addMenu("&Créer")
+        aide = mb.addMenu("&Aide")
+
+        ### Ajout des actions au menu
+        fich.addAction(self.actSauvegarder)
+        fich.addAction(self.actSortir)
+        creer.addAction(self.actSep)
+        creer.addAction(self.actNouvellePhrase)
+        aide.addAction(self.actAPropos)
+        aide.addAction(self.actAide)
 
         label1 = QLabel("Générateur de Phrases Secrètes")
         label1.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -66,32 +119,39 @@ class MainWindow(QWidget):
         sauvegarder.clicked.connect(self.sauvegarder)
 
         bsvg.addWidget(sauvegarder)
-        cb = QComboBox()
-        cb.view().setMinimumWidth(70)
-        cb.setFixedSize(20,25)
-        cb.setStyleSheet("background-color: rgb(166,155,128)")
-        sep_noms = ("Rien", "Tiret haut", "Tiret bas", "Plus", "Espace")
+        self.cb = QComboBox()
+        self.cb.view().setMinimumWidth(70)
+        self.cb.setFixedSize(20,25)
+        self.cb.setStyleSheet("background-color: rgb(166,155,128)")
+        self.sep_noms = ("Rien", "Tiret haut", "Tiret bas", "Plus", "Espace")
         for i in range(5):
-            cb.insertItem(i, sep_noms[i] )
+            self.cb.insertItem(i, self.sep_noms[i] )
 
-        cb.activated.connect(self.quel_sep)
+        self.cb.activated.connect(self.quel_sep)
 
-        bsvg.addWidget(cb)
+        bsvg.addWidget(self.cb)
 
         quit_save.addWidget(quitter)
 #--------------------------------------------------------------------------------
-    def closeEvent(self, event) -> None:
-        if self.svg:
-            quit()
-        choix = CustomDialog()
-        choix.exec()
-        if choix.retStatus == "Q":
-            quit()
-        elif not isinstance(event, bool):
-            event.ignore()
-        #return super().closeEvent(event)
+    def apropos(self):
+        msg = "Ici viendront les informations de\n l'à propos : auteur, copyright, etc."
+        ap = CustomDialog(lb1="Fermer",texte=msg, titre="À propos")
+        ap.exec()
+#--------------------------------------------------------------------------------
+    def aide(self):
+        msg = "Ici viendront les instructions\n pour l'utilisation de diceware"
+        ap = CustomDialog(lb1="Fermer",texte=msg, titre="Instructions")
+        ap.exec()
+#--------------------------------------------------------------------------------
+    def choisir_separateur(self):
+        choixSep = ChoixSeparateur()
+        choixSep.retStatus = " " # pour éviter erreur si fermeture fenêtre
+        choixSep.exec()
+        self.sep = choixSep.retStatus
 #--------------------------------------------------------------------------------
     def quel_sep(self, index):
+        self.cb.setCurrentIndex(index)
+        sep_type = self.cb.currentText()
         sep = ("", "-", "_", "+", " ")
         self.sep = sep[index]
 #--------------------------------------------------------------------------------
@@ -122,43 +182,94 @@ class MainWindow(QWidget):
                 for i in range(0, rand-1):
                     file.readline()
                 self.rep.addItem(file.readline().strip())
+#--------------------------------------------------------------------------------
+    def closeEvent(self, event) -> None:
+        if self.svg:
+            quit()
+        texte_msg = "La phrase secrète n'est pas sauvegardée\nQuitter quand même ?"
+        couleur = "rgb(140,70,35)"
+        choix = CustomDialog(lb1="Quitter",lb2="Annuler",texte=texte_msg, coul_fond=couleur)
+        choix.exec()
+        if choix.retStatus == "1":
+            quit()
+        elif not isinstance(event, bool):
+            event.ignore()
+        #return super().closeEvent(event)
 
 #################################################################################
-class CustomDialog(QDialog):
+class ChoixSeparateur(QDialog):
     def __init__(self):
         super().__init__()
+        self.dict_sep = { "Espace": " ", "Rien": "", "Tiret haut": "-", "Tiret bas": "_", "Plus": "+"}
+        bouton = list()
+        self.group = QButtonGroup(self)
+        container = QWidget(self)
+        rb_layout = QVBoxLayout(container)
+        self.setLayout(rb_layout)
+        container.setFixedSize(210,250)
+        container.setStyleSheet("background-color: rgb(220,238,252)")
 
-        self.setWindowTitle("Avertissement")
+        titre = QLabel("Choisissez le séparateur de mots")
+        titre.setStyleSheet("color: #333")
+        rb_layout.addWidget(titre)
+
+        i = 0
+        for label in self.dict_sep:
+            b = QRadioButton(label, self)
+            if not i:
+                b.setChecked(True)
+            h = 30
+            v = 20*(i+1)
+            b.move(h,v )
+            bouton.append(b)
+            self.group.addButton(bouton[i], i)
+            rb_layout.addWidget(bouton[i], i)
+            i += 1
+
+        self.group.buttonClicked.connect(self.slot)
+        
+    def slot(self, b):
+        self.retStatus = self.dict_sep[b.text()]
+        self.close()
+#################################################################################
+class CustomDialog(QDialog):
+    def __init__(self, lb1 = "", lb2 = "", texte="", titre="Avertissement", coul_fond="gray"):
+        super().__init__()
+
+        self.setWindowTitle(titre)
         self.retStatus = "X" # pour éviter une erreur si fermeture de la fenêtre
 
-        self.btn_quitter = QPushButton("Quitter")
-        self.btn_quitter.setStyleSheet("background-color: rgb(166,155,128)")
-        self.btn_quitter.clicked.connect(self.sortir)
-        self.btn_annuler = QPushButton("Annuler")
-        self.btn_annuler.setStyleSheet("background-color: rgb(166,155,128)")
-        self.btn_annuler.clicked.connect(self.annuler)
+        coul_bouton = "rgb(166,155,128)"
+
+        self.btn_1 = QPushButton(lb1)
+        self.btn_1.setStyleSheet(f"background-color: {coul_bouton}")
+        self.btn_1.clicked.connect(self.act_bt1)
+        self.btn_2 = QPushButton(lb2)
+        self.btn_2.setStyleSheet(f"background-color: {coul_bouton}")
+        self.btn_2.clicked.connect(self.act_bt2)
 
         self.dlg = QDialogButtonBox()
-        self.dlg.addButton(self.btn_quitter,QDialogButtonBox.ButtonRole.AcceptRole)
-        self.dlg.addButton(self.btn_annuler,QDialogButtonBox.ButtonRole.RejectRole)
+        self.dlg.addButton(self.btn_1,QDialogButtonBox.ButtonRole.AcceptRole)
+        if lb1 and lb2:
+            self.dlg.addButton(self.btn_2,QDialogButtonBox.ButtonRole.RejectRole)
 
-        message = QLabel("La phrase secrète n'est pas sauvegardée\nQuitter quand même ?")
+        message = QLabel(texte)
         message.setStyleSheet("color:rgb(220,220,220)")
 
         container = QWidget(self)
         cd_layout = QVBoxLayout(container)
-        container.setStyleSheet("background-color:rgb(140,70,35)")
+        container.setStyleSheet(f"background-color: {coul_fond}")
         container.setFixedSize(250,200)
         cd_layout.addWidget(message)
         cd_layout.addWidget(self.dlg)
         self.setLayout(cd_layout)
 #--------------------------------------------------------------------------------
-    def sortir(self):
-        self.retStatus = "Q"
+    def act_bt1(self):
+        self.retStatus = "1"
         self.close()
 #--------------------------------------------------------------------------------
-    def annuler(self):
-        self.retStatus = "A"
+    def act_bt2(self):
+        self.retStatus = "2"
         self.close()
 #################################################################################
 
